@@ -1,0 +1,54 @@
+service: sistema-pago-catalogo
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  stage: dev
+  environment:
+    REDIS_HOST: ${ssm:/catalogo/redis/host}
+    REDIS_PORT: ${ssm:/catalogo/redis/port}
+    REDIS_PASSWORD: ${ssm:/catalogo/redis/password}
+    S3_BUCKET_NAME: catalogo-pagos-csv
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+        - s3:DeleteObject
+      Resource: arn:aws:s3:::catalogo-pagos-csv/*
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+      Resource: ${ssm:/catalogo/kms/key}
+
+functions:
+  uploadCatalog:
+    handler: dist/lambdas/uploadCatalog.handler
+    memorySize: 512
+    timeout: 30
+    events:
+      - http:
+          path: /catalog/update
+          method: post
+          cors: true
+
+  getCatalog:
+    handler: dist/lambdas/getCatalog.handler
+    memorySize: 256
+    timeout: 10
+    events:
+      - http:
+          path: /catalog
+          method: get
+          cors: true
+
+plugins:
+  - serverless-webpack
+
+custom:
+  webpack:
+    webpackConfig: webpack.config.js
+    includeModules: true
