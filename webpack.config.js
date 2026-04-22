@@ -1,9 +1,14 @@
 const path = require('path');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   mode: 'production',
-  entry: './src/index.ts',
+  entry: {
+    'lambdas/uploadCatalog': './src/lambdas/uploadCatalog.ts',
+    'lambdas/getCatalog': './src/lambdas/getCatalog.ts',
+  },
   target: 'node',
+  externals: [nodeExternals()], // Excluir node_modules del bundle
   resolve: {
     extensions: ['.ts', '.js'],
   },
@@ -17,7 +22,7 @@ module.exports = {
     ],
   },
   output: {
-    filename: 'index.js',
+    filename: '[name].js',
     path: path.resolve(__dirname, 'dist'),
     libraryTarget: 'commonjs2',
   },

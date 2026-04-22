@@ -156,6 +156,13 @@
                     "kms:Decrypt"
                   ],
                   "Resource": "arn:aws:kms:us-east-1:335014104150:key/082a0b68-5f08-472f-80a2-9ec3c63f16fd"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "elasticache:Connect"
+                  ],
+                  "Resource": "arn:aws:elasticache:us-east-1:*:replicationgroup:*"
                 }
               ]
             }
@@ -174,7 +181,21 @@
               "lambdaRole"
             ]
           ]
-        }
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+              ]
+            ]
+          }
+        ]
       }
     },
     "UploadCatalogLambdaFunction": {
@@ -184,18 +205,18 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/sistema-pago-catalogo/dev/1776879207064-2026-04-22T17:33:27.064Z/sistema-pago-catalogo.zip"
+          "S3Key": "serverless/sistema-pago-catalogo/dev/1776896550180-2026-04-22T22:22:30.180Z/sistema-pago-catalogo.zip"
         },
-        "Handler": "dist/lambdas/uploadCatalog.handler",
+        "Handler": "src/lambdas/uploadCatalog.handler",
         "Runtime": "nodejs18.x",
         "FunctionName": "sistema-pago-catalogo-dev-uploadCatalog",
         "MemorySize": 512,
-        "Timeout": 30,
+        "Timeout": 60,
         "Environment": {
           "Variables": {
-            "REDIS_HOST": "redis-cluster-endpoint",
+            "REDIS_HOST": "master.sistema-pagos-cluster.oofk4z.use1.cache.amazonaws.com",
             "REDIS_PORT": "6379",
-            "REDIS_PASSWORD": "redis-password-placeholder",
+            "REDIS_PASSWORD": "SistemaPagos2024Token",
             "S3_BUCKET_NAME": "catalogo-pagos-csv"
           }
         },
@@ -203,6 +224,15 @@
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
             "Arn"
+          ]
+        },
+        "VpcConfig": {
+          "SecurityGroupIds": [
+            "sg-0277d7759f5e00925"
+          ],
+          "SubnetIds": [
+            "subnet-096c20ec2cdcf1c6f",
+            "subnet-01662b765bd74677e"
           ]
         }
       },
@@ -217,18 +247,18 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/sistema-pago-catalogo/dev/1776879207064-2026-04-22T17:33:27.064Z/sistema-pago-catalogo.zip"
+          "S3Key": "serverless/sistema-pago-catalogo/dev/1776896550180-2026-04-22T22:22:30.180Z/sistema-pago-catalogo.zip"
         },
-        "Handler": "dist/lambdas/getCatalog.handler",
+        "Handler": "src/lambdas/getCatalog.handler",
         "Runtime": "nodejs18.x",
         "FunctionName": "sistema-pago-catalogo-dev-getCatalog",
         "MemorySize": 256,
         "Timeout": 10,
         "Environment": {
           "Variables": {
-            "REDIS_HOST": "redis-cluster-endpoint",
+            "REDIS_HOST": "master.sistema-pagos-cluster.oofk4z.use1.cache.amazonaws.com",
             "REDIS_PORT": "6379",
-            "REDIS_PASSWORD": "redis-password-placeholder",
+            "REDIS_PASSWORD": "SistemaPagos2024Token",
             "S3_BUCKET_NAME": "catalogo-pagos-csv"
           }
         },
@@ -237,30 +267,39 @@
             "IamRoleLambdaExecution",
             "Arn"
           ]
+        },
+        "VpcConfig": {
+          "SecurityGroupIds": [
+            "sg-0277d7759f5e00925"
+          ],
+          "SubnetIds": [
+            "subnet-096c20ec2cdcf1c6f",
+            "subnet-01662b765bd74677e"
+          ]
         }
       },
       "DependsOn": [
         "GetCatalogLogGroup"
       ]
     },
-    "UploadCatalogLambdaVersionb2ffESLtGQL2H20heYl5uRDpnTBvQrEtR6a3L5Fw": {
+    "UploadCatalogLambdaVersioncvsE3VXpfPn83UEuQMDKaxYBcfM0twM3Hla9fQmHho": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "UploadCatalogLambdaFunction"
         },
-        "CodeSha256": "YnY0nRCu7qJc53DUvgeWpqbKEX7QVvdLq+vVHzvkOKk="
+        "CodeSha256": "Tgcuq021arA25MmSWRcp8HawE3EWW9fJpMAmZM/xdnE="
       }
     },
-    "GetCatalogLambdaVersionJ7ygiuIBSG9aRYR5gAroKy1J8gglcPahpt7qWSjs3F8": {
+    "GetCatalogLambdaVersionDMf1VACKAfCzKgWvNrGI6zFdTv0ROIXuqHhwuyWHI": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetCatalogLambdaFunction"
         },
-        "CodeSha256": "YnY0nRCu7qJc53DUvgeWpqbKEX7QVvdLq+vVHzvkOKk="
+        "CodeSha256": "Tgcuq021arA25MmSWRcp8HawE3EWW9fJpMAmZM/xdnE="
       }
     },
     "ApiGatewayRestApi": {
@@ -484,7 +523,7 @@
         "GetCatalogLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1776879184745": {
+    "ApiGatewayDeployment1776896467368": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -586,7 +625,7 @@
     "UploadCatalogLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "UploadCatalogLambdaVersionb2ffESLtGQL2H20heYl5uRDpnTBvQrEtR6a3L5Fw"
+        "Ref": "UploadCatalogLambdaVersioncvsE3VXpfPn83UEuQMDKaxYBcfM0twM3Hla9fQmHho"
       },
       "Export": {
         "Name": "sls-sistema-pago-catalogo-dev-UploadCatalogLambdaFunctionQualifiedArn"
@@ -595,7 +634,7 @@
     "GetCatalogLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetCatalogLambdaVersionJ7ygiuIBSG9aRYR5gAroKy1J8gglcPahpt7qWSjs3F8"
+        "Ref": "GetCatalogLambdaVersionDMf1VACKAfCzKgWvNrGI6zFdTv0ROIXuqHhwuyWHI"
       },
       "Export": {
         "Name": "sls-sistema-pago-catalogo-dev-GetCatalogLambdaFunctionQualifiedArn"
