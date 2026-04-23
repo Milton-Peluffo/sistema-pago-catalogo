@@ -9,7 +9,7 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const catalogItems = await getCatalogFromRedis();
     console.log(`Retrieved ${catalogItems.length} items from Redis`);
 
-    return {
+    return { 
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
