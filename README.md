@@ -2,21 +2,68 @@
 
 Proyecto para la gestión de catálogo de servicios de pago utilizando AWS Lambda, Redis y S3.
 
-## Arquitectura
+## Arquitectura y Funcionamiento
 
-El sistema consiste en dos endpoints principales:
+El sistema consiste en dos endpoints principales que operan en una arquitectura serverless:
 
-### 1. POST /catalog/update
-- **Función**: `uploadCatalog`
-- **Descripción**: Recibe un archivo CSV, lo procesa y actualiza el catálogo en Redis
-- **Almacenamiento**: Sube el archivo a S3 y actualiza los datos en Redis
-- **Método HTTP**: POST
+### 1. POST /catalog/update - Proceso de Actualización del Catálogo
 
-### 2. GET /catalog
-- **Función**: `getCatalog`
-- **Descripción**: Consulta el catálogo de servicios desde Redis
-- **Respuesta**: Retorna el listado completo de servicios en formato JSON
-- **Método HTTP**: GET
+**Función**: `uploadCatalog`  
+**Descripción**: Recibe un archivo CSV, lo procesa y actualiza el catálogo en Redis y S3  
+**Método HTTP**: POST  
+
+#### Flujo de Procesamiento:
+
+1. **Recepción del Request**: 
+   - El endpoint recibe un archivo CSV en formato raw con encoding UTF-8
+   - Soporta caracteres especiales como tildes (á, é, í, ó, ú, ñ)
+
+2. **Procesamiento del CSV**:
+   - Parsea el contenido CSV línea por línea
+   - Extrae los campos: ID, Categoría, Proveedor, Servicio, Plan, Precio Mensual, Velocidad/Detalles, Estado
+   - Convierte los datos a objetos estructurados
+
+3. **Almacenamiento en Redis**:
+   - Conecta al cluster Redis usando TLS para comunicación segura
+   - Limpia el catálogo existente con `flushDb()`
+   - Guarda cada item como un hash Redis con la estructura: `catalogo:{id}`
+   - Almacena los campos: id, categoria, proveedor, servicio, plan, precio_mensual, detalles, estado
+
+4. **Almacenamiento en S3**:
+   - Genera un nombre único para el archivo: `catalog-{timestamp}.csv`
+   - Añade BOM (Byte Order Mark) para compatibilidad con Excel
+   - Sube el archivo original al bucket S3 con encoding UTF-8
+   - El archivo sirve como backup y referencia del catálogo cargado
+
+5. **Response**:
+   - Retorna confirmación de éxito con número de items procesados
+   - Incluye información sobre el archivo subido a S3
+
+### 2. GET /catalog - Consulta del Catálogo
+
+**Función**: `getCatalog`  
+**Descripción**: Consulta el catálogo de servicios desde Redis  
+**Método HTTP**: GET  
+
+#### Flujo de Consulta:
+
+1. **Conexión a Redis**:
+   - Establece conexión segura con el cluster Redis usando TLS
+   - Autentica con las credenciales configuradas
+
+2. **Recuperación de Datos**:
+   - Busca todas las keys con patrón `catalogo:*`
+   - Recupera cada hash individualmente
+   - Construye el array de items del catálogo
+
+3. **Formateo de Response**:
+   - Convierte los datos a formato JSON
+   - Mantiene la estructura original con todos los campos
+   - Preserva encoding UTF-8 para caracteres especiales
+
+4. **Response**:
+   - Retorna el catálogo completo como array JSON
+   - Incluye headers CORS para acceso desde frontend
 
 ## Estructura del Proyecto
 
@@ -42,124 +89,3 @@ sistema-pago-catalogo/
 ├── webpack.config.js
 └── README.md
 ```
-
-## Instalación y Configuración
-
-### Prerrequisitos
-- Node.js 18+
-- AWS CLI configurado
-- Terraform instalado
-- Serverless Framework instalado
-
-### Pasos de Instalación
-
-1. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
-
-2. **Configurar infraestructura con Terraform**
-   ```bash
-   cd terraform
-   terraform init
-   terraform plan
-   terraform apply
-   ```
-
-3. **Actualizar configuración de Redis**
-   - Actualizar los parámetros SSM con la configuración real del cluster Redis
-   - Host del cluster Redis
-   - Puerto (usualmente 6379)
-   - Contraseña
-
-4. **Desplegar las funciones Lambda**
-   ```bash
-   npm run deploy
-   ```
-
-## Formato del CSV
-
-El archivo CSV debe tener el siguiente formato:
-
-```csv
-ID,Categoría,Proveedor,Servicio,Plan,Precio Mensual,Velocidad/Detalles,Estado
-1,Energía,Empresa Eléctrica Nacional,Luz Residencial,Básico,"45,00 US$",150 kWh incluidos,Activo
-2,Energía,Empresa Eléctrica Nacional,Luz Residencial,Premium,"75,00 US$",300 kWh incluidos,Activo
-...
-```
-
-## Ejemplos de Uso
-
-### Actualizar Catálogo (POST)
-
-```bash
-curl -X POST https://your-api-gateway-url/catalog/update \
-  -H "Content-Type: text/csv" \
-  --data-binary @catalogo.csv
-```
-
-### Obtener Catálogo (GET)
-
-```bash
-curl https://your-api-gateway-url/catalog
-```
-
-Respuesta esperada:
-```json
-[
-  {
-    "id": 1,
-    "categoria": "Energía",
-    "proveedor": "Empresa Eléctrica Nacional",
-    "servicio": "Luz Residencial",
-    "plan": "Básico",
-    "precio_mensual": 45000,
-    "detalles": "150 kWh incluidos",
-    "estado": "Activo"
-  }
-]
-```
-
-## Variables de Entorno
-
-Las siguientes variables de entorno son configuradas automáticamente:
-
-- `REDIS_HOST`: Host del cluster Redis (desde SSM)
-- `REDIS_PORT`: Puerto del cluster Redis (desde SSM)
-- `REDIS_PASSWORD`: Contraseña del cluster Redis (desde SSM)
-- `S3_BUCKET_NAME`: Nombre del bucket S3 para archivos CSV
-
-## Notas Importantes
-
-1. **Redis**: Se asume que el cluster Redis será configurado por otro equipo
-2. **Frontend**: El frontend será desarrollado en otro repositorio
-3. **Seguridad**: Los archivos en S3 están encriptados con KMS
-4. **Logs**: Las funciones Lambda generan logs en CloudWatch
-5. **CORS**: Los endpoints están configurados para permitir CORS
-
-## Testing
-
-Para probar localmente:
-
-```bash
-# Compilar TypeScript
-npm run build
-
-# Probar funciones localmente (requiere configuración local de Redis y AWS)
-serverless invoke local -f uploadCatalog
-serverless invoke local -f getCatalog
-```
-
-## Despliegue
-
-El despliegue se realiza mediante Serverless Framework:
-
-```bash
-npm run deploy
-```
-
-Esto creará:
-- Funciones Lambda en AWS
-- API Gateway con los endpoints configurados
-- Roles y permisos IAM necesarios
-- Integración con los recursos existentes (S3, Redis)

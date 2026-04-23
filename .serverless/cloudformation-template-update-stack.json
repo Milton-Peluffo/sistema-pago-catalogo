@@ -148,7 +148,7 @@
                     "s3:GetObject",
                     "s3:DeleteObject"
                   ],
-                  "Resource": "arn:aws:s3:::catalogo-pagos-csv/*"
+                  "Resource": "arn:aws:s3:::sistema-pago-catalogo-dev-catalog-csv/*"
                 },
                 {
                   "Effect": "Allow",
@@ -205,7 +205,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/sistema-pago-catalogo/dev/1776896550180-2026-04-22T22:22:30.180Z/sistema-pago-catalogo.zip"
+          "S3Key": "serverless/sistema-pago-catalogo/dev/1776977250973-2026-04-23T20:47:30.973Z/sistema-pago-catalogo.zip"
         },
         "Handler": "src/lambdas/uploadCatalog.handler",
         "Runtime": "nodejs18.x",
@@ -217,7 +217,7 @@
             "REDIS_HOST": "master.sistema-pagos-cluster.oofk4z.use1.cache.amazonaws.com",
             "REDIS_PORT": "6379",
             "REDIS_PASSWORD": "SistemaPagos2024Token",
-            "S3_BUCKET_NAME": "catalogo-pagos-csv"
+            "S3_BUCKET_NAME": "sistema-pago-catalogo-dev-catalog-csv"
           }
         },
         "Role": {
@@ -247,7 +247,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/sistema-pago-catalogo/dev/1776896550180-2026-04-22T22:22:30.180Z/sistema-pago-catalogo.zip"
+          "S3Key": "serverless/sistema-pago-catalogo/dev/1776977250973-2026-04-23T20:47:30.973Z/sistema-pago-catalogo.zip"
         },
         "Handler": "src/lambdas/getCatalog.handler",
         "Runtime": "nodejs18.x",
@@ -259,7 +259,7 @@
             "REDIS_HOST": "master.sistema-pagos-cluster.oofk4z.use1.cache.amazonaws.com",
             "REDIS_PORT": "6379",
             "REDIS_PASSWORD": "SistemaPagos2024Token",
-            "S3_BUCKET_NAME": "catalogo-pagos-csv"
+            "S3_BUCKET_NAME": "sistema-pago-catalogo-dev-catalog-csv"
           }
         },
         "Role": {
@@ -282,24 +282,24 @@
         "GetCatalogLogGroup"
       ]
     },
-    "UploadCatalogLambdaVersioncvsE3VXpfPn83UEuQMDKaxYBcfM0twM3Hla9fQmHho": {
+    "UploadCatalogLambdaVersionkiMiPpIQiMznjJIBM8JnYEiguyDvuXtOvzpvrbUo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "UploadCatalogLambdaFunction"
         },
-        "CodeSha256": "Tgcuq021arA25MmSWRcp8HawE3EWW9fJpMAmZM/xdnE="
+        "CodeSha256": "r5SmVOifk8H7NNwYKXJ/puB64A2BpKEH3y/8FOE3mS0="
       }
     },
-    "GetCatalogLambdaVersionDMf1VACKAfCzKgWvNrGI6zFdTv0ROIXuqHhwuyWHI": {
+    "GetCatalogLambdaVersionBq4evlQFgTH1AK6bqUcUj79Fzl0wqP69CyGJLgJbA": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "GetCatalogLambdaFunction"
         },
-        "CodeSha256": "Tgcuq021arA25MmSWRcp8HawE3EWW9fJpMAmZM/xdnE="
+        "CodeSha256": "r5SmVOifk8H7NNwYKXJ/puB64A2BpKEH3y/8FOE3mS0="
       }
     },
     "ApiGatewayRestApi": {
@@ -523,7 +523,7 @@
         "GetCatalogLambdaPermissionApiGateway"
       ]
     },
-    "ApiGatewayDeployment1776896467368": {
+    "ApiGatewayDeployment1776977152672": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
@@ -625,7 +625,7 @@
     "UploadCatalogLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "UploadCatalogLambdaVersioncvsE3VXpfPn83UEuQMDKaxYBcfM0twM3Hla9fQmHho"
+        "Ref": "UploadCatalogLambdaVersionkiMiPpIQiMznjJIBM8JnYEiguyDvuXtOvzpvrbUo"
       },
       "Export": {
         "Name": "sls-sistema-pago-catalogo-dev-UploadCatalogLambdaFunctionQualifiedArn"
@@ -634,7 +634,7 @@
     "GetCatalogLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "GetCatalogLambdaVersionDMf1VACKAfCzKgWvNrGI6zFdTv0ROIXuqHhwuyWHI"
+        "Ref": "GetCatalogLambdaVersionBq4evlQFgTH1AK6bqUcUj79Fzl0wqP69CyGJLgJbA"
       },
       "Export": {
         "Name": "sls-sistema-pago-catalogo-dev-GetCatalogLambdaFunctionQualifiedArn"

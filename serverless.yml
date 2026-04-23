@@ -11,7 +11,7 @@ provider:
     REDIS_HOST: ${ssm:/catalogo/redis/host}
     REDIS_PORT: ${ssm:/catalogo/redis/port}
     REDIS_PASSWORD: ${ssm:/catalogo/redis/password}
-    S3_BUCKET_NAME: catalogo-pagos-csv
+    S3_BUCKET_NAME: sistema-pago-catalogo-dev-catalog-csv
   vpc:
     securityGroupIds:
       - sg-0277d7759f5e00925
@@ -24,7 +24,7 @@ provider:
         - s3:PutObject
         - s3:GetObject
         - s3:DeleteObject
-      Resource: arn:aws:s3:::catalogo-pagos-csv/*
+      Resource: arn:aws:s3:::sistema-pago-catalogo-dev-catalog-csv/*
     - Effect: Allow
       Action:
         - kms:Decrypt
