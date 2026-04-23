@@ -29,6 +29,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       fileContent = event.body;
     }
 
+    // Asegurar encoding UTF-8 correcto para tildes
+    fileContent = Buffer.from(fileContent, 'utf-8').toString('utf-8');
+
     // Parsear el contenido CSV
     const catalogItems = parseCSVContent(fileContent);
     console.log(`Parsed ${catalogItems.length} items from CSV`);
@@ -36,12 +39,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     // Guardar en Redis
     await saveCatalogToRedis(catalogItems);
 
-    // Subir archivo a S3
-    const bucketName = process.env.S3_BUCKET_NAME || 'catalogo-pagos-csv';
-    const fileName = `catalog-${Date.now()}.csv`;
-    const buffer = Buffer.from(fileContent, 'utf-8');
-    
-    await uploadFileToS3(bucketName, buffer, fileName, 'text/csv');
+    // Subir archivo a S3 (síncrono para depuración)
+    let fileName = null;
+    try {
+      const bucketName = process.env.S3_BUCKET_NAME || 'catalogo-pagos-csv';
+      fileName = `catalog-${Date.now()}.csv`;
+      
+      // Asegurar encoding UTF-8 con BOM para compatibilidad con Excel
+      const BOM = '\uFEFF';
+      const csvContent = BOM + fileContent;
+      const buffer = Buffer.from(csvContent, 'utf-8');
+      
+      console.log(`Attempting S3 upload to bucket: ${bucketName}, file: ${fileName}`);
+      await uploadFileToS3(bucketName, buffer, fileName, 'text/csv; charset=utf-8');
+      console.log(`File uploaded to S3: ${fileName}`);
+    } catch (s3Error) {
+      console.error('S3 upload failed:', s3Error);
+      fileName = null;
+    }
 
     return {
       statusCode: 200,
@@ -54,7 +69,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
       body: JSON.stringify({
         message: 'Catalog updated successfully',
         itemsProcessed: catalogItems.length,
-        fileName: fileName
+        fileName: fileName,
+        note: fileName ? 'File uploaded to S3' : 'S3 upload failed (check logs)'
       }),
       isBase64Encoded: false
     };

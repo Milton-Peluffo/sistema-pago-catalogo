@@ -203,24 +203,21 @@ resource "aws_iam_policy" "lambda_policy" {
   })
 }
 
+# VPC Gateway Endpoint for S3 (ya existe)
+resource "aws_vpc_endpoint" "s3_endpoint" {
+  vpc_id            = "vpc-0ae3d0b7ff67195b2"
+  service_name      = "com.amazonaws.us-east-1.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids  = ["rtb-0123456789abcdef0"] # Necesitamos la route table real
+
+  tags = {
+    Name = "s3-vpc-endpoint"
+  }
+}
+
 # Attach policy to role
 resource "aws_iam_role_policy_attachment" "lambda_policy_attachment" {
   role       = aws_iam_role.lambda_role.name
   policy_arn = aws_iam_policy.lambda_policy.arn
 }
 
-# Outputs
-output "s3_bucket_name" {
-  description = "S3 bucket name for catalog files"
-  value       = aws_s3_bucket.catalog_bucket.id
-}
-
-output "kms_key_arn" {
-  description = "KMS key ARN"
-  value       = aws_kms_key.catalog_kms.arn
-}
-
-output "lambda_role_arn" {
-  description = "Lambda execution role ARN"
-  value       = aws_iam_role.lambda_role.arn
-}

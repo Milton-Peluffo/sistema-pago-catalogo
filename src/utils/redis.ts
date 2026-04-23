@@ -7,14 +7,19 @@ export const getRedisClient = async (): Promise<RedisClientType> => {
   if (!redisClient) {
     redisClient = createClient({
       socket: {
-        host: process.env.REDIS_HOST || 'localhost',
+        host: process.env.REDIS_HOST || 'master.sistema-pagos-cluster.oofk4z.use1.cache.amazonaws.com',
         port: parseInt(process.env.REDIS_PORT || '6379'),
+        tls: true, // Requerido para encriptación en tránsito
       },
       password: process.env.REDIS_PASSWORD,
     });
 
     redisClient.on('error', (err) => {
       console.error('Redis Client Error:', err);
+    });
+
+    redisClient.on('connect', () => {
+      console.log('Redis Client Connected');
     });
 
     await redisClient.connect();
@@ -27,11 +32,11 @@ export const saveCatalogToRedis = async (items: CatalogItem[]): Promise<void> =>
   const client = await getRedisClient();
   
   // Limpiar catálogo existente
-  await client.del('catalog:items');
+  await client.flushDb();
   
-  // Guardar cada item como un hash
+  // Guardar cada item como hash según la estructura del compañero
   for (const item of items) {
-    await client.hSet(`catalog:item:${item.id}`, {
+    await client.hSet(`catalogo:${item.id}`, {
       id: item.id.toString(),
       categoria: item.categoria,
       proveedor: item.proveedor,
@@ -43,27 +48,23 @@ export const saveCatalogToRedis = async (items: CatalogItem[]): Promise<void> =>
     });
   }
   
-  // Guardar lista de IDs para consulta rápida
-  const ids = items.map(item => item.id.toString());
-  await client.sAdd('catalog:ids', ids);
-  
   console.log(`Saved ${items.length} items to Redis`);
 };
 
 export const getCatalogFromRedis = async (): Promise<CatalogItem[]> => {
   const client = await getRedisClient();
   
-  // Obtener todos los IDs del catálogo
-  const ids = await client.sMembers('catalog:ids');
+  // Obtener todas las keys del catálogo según la estructura del compañero
+  const keys = await client.keys('catalogo:*');
   
-  if (ids.length === 0) {
+  if (keys.length === 0) {
     return [];
   }
   
   // Obtener todos los items
   const catalog: CatalogItem[] = [];
-  for (const id of ids) {
-    const item = await client.hGetAll(`catalog:item:${id}`);
+  for (const key of keys) {
+    const item = await client.hGetAll(key);
     if (item && item.id) {
       catalog.push({
         id: parseInt(item.id),
